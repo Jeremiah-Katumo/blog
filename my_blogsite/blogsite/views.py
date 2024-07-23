@@ -1,10 +1,11 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.template import loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 
 from . import models
+from . import forms
 
 
 # Using the generic ListView
@@ -32,6 +33,7 @@ def post_list(request):
     context = {
         'posts': posts
     }
+
     return HttpResponse(template.render(context, request))
 
 def post_detail(request, year, month, day, post):
@@ -47,6 +49,7 @@ def post_detail(request, year, month, day, post):
     context = {
         'post': post
     }
+    
     return HttpResponse(template.render(context, request))
     # try:
     #     post = models.Post.published.get(id=id)
@@ -57,3 +60,24 @@ def post_detail(request, year, month, day, post):
     # except models.Post.DoesNotExist:
     #     raise Http404("No post found")
     # return HttpResponse(template.render(context, request))
+
+
+def post_share(request, post_id):
+    post = get_object_or_404(models.Post, id=post_id, status=models.Post.Status.PUBLISHED)
+    if request.method == 'POST':
+        # Form was submitted
+        form = forms.EmailPostForm(request.POST)
+        if form.is_valid():
+            # Form fields passed validation
+            cd = form.cleaned_data
+            # send email
+    else:
+        form = forms.EmailPostForm()
+        context = {
+            'post': post,
+            'form': form
+        }
+
+    return render(request, 'blogsite/post/share.html', context)
+    # send email or other sharing logic here
+    # return HttpResponseRedirect(post.get_absolute_url())
