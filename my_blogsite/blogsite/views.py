@@ -2,8 +2,18 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.template import loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic import ListView
 
 from . import models
+
+
+# Using the generic ListView
+class PostListView(ListView):
+    """Alternative post list view"""
+    queryset = models.Post.published.all()
+    context_object_name = 'posts'
+    paginate_by = 3
+    template_name = 'blogsite/post/list.html'
 
 # Create your views here.
 def post_list(request):
@@ -32,6 +42,12 @@ def post_detail(request, year, month, day, post):
         publish__month=month,
         publish__day=day,
     )
+    
+    template = loader.get_template('detail.html')
+    context = {
+        'post': post
+    }
+    return HttpResponse(template.render(context, request))
     # try:
     #     post = models.Post.published.get(id=id)
     #     template = loader.get_template('detail.html')
@@ -41,8 +57,3 @@ def post_detail(request, year, month, day, post):
     # except models.Post.DoesNotExist:
     #     raise Http404("No post found")
     # return HttpResponse(template.render(context, request))
-    template = loader.get_template('detail.html')
-    context = {
-        'post': post
-    }
-    return HttpResponse(template.render(context, request))
