@@ -3,6 +3,7 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.template import loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
+from django.core.mail import send_mail
 
 from . import models
 from . import forms
@@ -49,7 +50,7 @@ def post_detail(request, year, month, day, post):
     context = {
         'post': post
     }
-    
+
     return HttpResponse(template.render(context, request))
     # try:
     #     post = models.Post.published.get(id=id)
@@ -64,6 +65,8 @@ def post_detail(request, year, month, day, post):
 
 def post_share(request, post_id):
     post = get_object_or_404(models.Post, id=post_id, status=models.Post.Status.PUBLISHED)
+    sent = False
+
     if request.method == 'POST':
         # Form was submitted
         form = forms.EmailPostForm(request.POST)
@@ -71,11 +74,17 @@ def post_share(request, post_id):
             # Form fields passed validation
             cd = form.cleaned_data
             # send email
+            post_url = request.build_absolute_uri(post.get_absolute_url())
+            subject = f"{cd['name']} recommends reading '{post.title}'"
+            message = f"Read '{post.title}' at {post_url}\n\n{cd['name']}\'s comments: {cd['comments']}"
+            send_mail(subject, message, 'noreply@example.com', [cd['email']])
+            sent = True
     else:
         form = forms.EmailPostForm()
         context = {
             'post': post,
-            'form': form
+            'form': form,
+            'sent': sent,
         }
 
     return render(request, 'blogsite/post/share.html', context)
