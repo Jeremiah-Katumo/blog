@@ -1,5 +1,7 @@
 from django import forms
 
+from . import models
+
 
 class EmailPostForm(forms.Form):
     name = forms.CharField(max_length=30)
@@ -14,3 +16,9 @@ class EmailPostForm(forms.Form):
         if len(to_emails.split()) > 5:
             raise forms.ValidationError('You can only enter up to five recipient emails.')
         return to_emails
+    
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = models.Comment
+        fields = ['name', 'email', 'body']

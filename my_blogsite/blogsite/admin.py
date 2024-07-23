@@ -23,3 +23,10 @@ class AuthorAdmin(admin.ModelAdmin):
     search_fields = ['username', 'firstname', 'lastname', 'phone']
     ordering = ['lastname']
     date_hierarchy = 'joined_date'
+
+
+@admin.register(models.Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ['name', 'email', 'post', 'created_at', 'active']
+    list_filter = ['active', 'created_at', 'updated_at']
+    search_fields = ['name', 'email', 'body']
